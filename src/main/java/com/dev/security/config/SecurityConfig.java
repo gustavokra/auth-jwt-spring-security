@@ -23,9 +23,9 @@ import jakarta.servlet.DispatcherType;
 
 @Configuration
 @EnableWebSecurity
-// @EnableMethodSecurity
 public class SecurityConfig {
 
+// @EnableMethodSecurity
     private final SecurityFilter securityFilter;
 
     public SecurityConfig(SecurityFilter securityFilter) {
@@ -45,10 +45,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/v1/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/v1/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/v1/admin/**").hasRole("ADMIN")
-                        // .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/test").permitAll()
                         .anyRequest().authenticated())
                         .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
