@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,7 +30,9 @@ public class AdminController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterUserResponse> criarAdmin(@Valid RegisterUserRequest request) {
+    public ResponseEntity<RegisterUserResponse> criarAdmin(
+        @Valid @RequestBody RegisterUserRequest request) {
+
         User newAdmin = new User();
 
         newAdmin.setName(request.nome());
