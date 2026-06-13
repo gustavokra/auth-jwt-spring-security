@@ -17,12 +17,13 @@ import com.dev.security.dto.request.RegisterUserRequest;
 import com.dev.security.dto.response.LoginResponse;
 import com.dev.security.dto.response.RegisterUserResponse;
 import com.dev.security.entity.User;
+import com.dev.security.enums.UserRole;
 import com.dev.security.repository.UserRepository;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("api/v1/auth")
 public class AuthController {
 
     private final UserRepository repo;
@@ -62,10 +63,12 @@ public class AuthController {
         newUser.setName(request.nome());
         newUser.setEmail(request.email());
         newUser.setPassword(passwordEncoder.encode(request.senha()));
+        newUser.setRole(UserRole.USER);
 
         repo.save(newUser);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new RegisterUserResponse(newUser.getName(), newUser.getEmail()));
     }
+
 }
