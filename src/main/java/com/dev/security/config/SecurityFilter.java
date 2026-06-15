@@ -1,10 +1,9 @@
 package com.dev.security.config;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,7 +26,7 @@ public class SecurityFilter extends OncePerRequestFilter {
     public SecurityFilter(TokenConfig tokenConfig) {
         this.tokenConfig = tokenConfig;
     }
-
+//refatorar: validando token e setando usuario no securitycontext
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -40,7 +39,7 @@ public class SecurityFilter extends OncePerRequestFilter {
             if (optUser.isPresent()) {
                 JWTUserData userData = optUser.get();
 
-                List<GrantedAuthority> authorities = new ArrayList<>();
+                Set<GrantedAuthority> authorities = new HashSet<>();
 
                 if ("ADMIN".equals(userData.role())) {
                     authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
