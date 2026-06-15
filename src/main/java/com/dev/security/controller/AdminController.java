@@ -48,7 +48,6 @@ public class AdminController {
 
 
     @GetMapping("/users")
-    // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> listarUsuarios() {
         return ResponseEntity.ok().build();
     }

@@ -26,38 +26,54 @@ public class SecurityFilter extends OncePerRequestFilter {
     public SecurityFilter(TokenConfig tokenConfig) {
         this.tokenConfig = tokenConfig;
     }
-//refatorar: validando token e setando usuario no securitycontext
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        validateHeaderAndDoFilterInternal(request, response, filterChain);
+    }
+
+    private void validateHeaderAndDoFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain)
+            throws IOException, ServletException {
         String autorizedHeader = request.getHeader("Authorization");
 
         if (Strings.isNotEmpty(autorizedHeader) && autorizedHeader.startsWith("Bearer")) {
-            String token = autorizedHeader.replace("Bearer ", "");
-            Optional<JWTUserData> optUser = tokenConfig.validateToken(token);
-
-            if (optUser.isPresent()) {
-                JWTUserData userData = optUser.get();
-
-                Set<GrantedAuthority> authorities = new HashSet<>();
-
-                if ("ADMIN".equals(userData.role())) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-                    authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-                } else {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-                }
-
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userData, null, authorities);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-
+            adcUserDetalhesSecurityContext(retornarUserDetailsDeToken(autorizedHeader));
             filterChain.doFilter(request, response);
-
         } else {
             filterChain.doFilter(request, response);
         }
+    }
+
+    private Optional<JWTUserData> retornarUserDetailsDeToken(String autorizedHeader) {
+        String token = autorizedHeader.replace("Bearer ", "");
+        return tokenConfig.validateToken(token);
+    }
+
+    private void adcUserDetalhesSecurityContext(Optional<JWTUserData> optUser) {
+        if (optUser.isPresent()) {
+            JWTUserData userData = optUser.get();
+
+            Set<GrantedAuthority> authorities = retornarAuthorities(userData.role());
+
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    userData, null, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+    }
+
+    private Set<GrantedAuthority> retornarAuthorities(String role) {
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        if ("ADMIN".equals(role)) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        } else {
+            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        }
+        return authorities;
     }
 
 }
