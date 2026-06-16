@@ -41,7 +41,7 @@ public class AuthController {
         this.tokenConfig = tokenConfig;
     }
 
-    @PostMapping("/login")
+    @PostMapping(value = "/login", consumes = "application/json")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
 
         UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(request.email(),
@@ -55,7 +55,7 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(token));
     }
 
-    @PostMapping("/register")
+    @PostMapping(value = "/register", consumes = "application/json")
     public ResponseEntity<RegisterUserResponse> register(
             @Valid @RequestBody RegisterUserRequest request) {
         User newUser = new User();

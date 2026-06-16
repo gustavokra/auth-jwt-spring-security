@@ -29,7 +29,7 @@ public class AdminController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping("/register")
+    @PostMapping(value = "/register", consumes = "application/json")
     public ResponseEntity<RegisterUserResponse> criarAdmin(
         @Valid @RequestBody RegisterUserRequest request) {
 
@@ -47,7 +47,7 @@ public class AdminController {
     }
 
 
-    @GetMapping("/users")
+    @GetMapping(value = "/users", consumes = "application/json")
     public ResponseEntity<?> listarUsuarios() {
         return ResponseEntity.ok().build();
     }
