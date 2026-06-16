@@ -1,7 +1,7 @@
 # SecurityContextHolder
 Usado para guardar detalhes de quem é autenticado.
 
-Fica dentro de SecurityFilter, após a validação do token ser positiva, o email é retirado do token e tido como __princpial__, assim como a role é tida como o gerador da Collection de GrantedAuthority. 
+Fica dentro de SecurityFilter, após a validação do token ser positiva, o email é retirado do token e tido como __principal__, assim como a role é tida como o gerador da Collection de GrantedAuthority. 
 
 SecurityContextHolder -> SecurityContext -> Authentication(principal, credentials, authorities)
 ```
