@@ -42,10 +42,9 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         if (Strings.isNotEmpty(autorizedHeader) && autorizedHeader.startsWith("Bearer")) {
             adcUserDetalhesSecurityContext(retornarUserDetailsDeToken(autorizedHeader));
-            filterChain.doFilter(request, response);
-        } else {
-            filterChain.doFilter(request, response);
         }
+
+        filterChain.doFilter(request, response);
     }
 
     private Optional<JWTUserData> retornarUserDetailsDeToken(String autorizedHeader) {
@@ -54,15 +53,13 @@ public class SecurityFilter extends OncePerRequestFilter {
     }
 
     private void adcUserDetalhesSecurityContext(Optional<JWTUserData> optUser) {
-        if (optUser.isPresent()) {
-            JWTUserData userData = optUser.get();
-
+        optUser.ifPresent(userData -> {
             Set<GrantedAuthority> authorities = retornarAuthorities(userData.role());
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     userData, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
+        });
     }
 
     private Set<GrantedAuthority> retornarAuthorities(String role) {
