@@ -33,4 +33,4 @@ credentials (geralmente é uma senha, em muitos casos apagada após a autentica�
 e authorities (instâncias de GrantedAuthority).  
 
 # GrantedAuthority
-Permissoes de auto nível
+Permissoes de alto nível
