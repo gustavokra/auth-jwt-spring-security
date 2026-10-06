@@ -47,11 +47,6 @@ public class SecurityFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private Optional<JWTUserData> retornarUserDetailsDeToken(String autorizedHeader) {
-        String token = autorizedHeader.replace("Bearer ", "");
-        return tokenConfig.validateToken(token);
-    }
-
     private void adcUserDetalhesSecurityContext(Optional<JWTUserData> optUser) {
         optUser.ifPresent(userData -> {
             Set<GrantedAuthority> authorities = retornarAuthorities(userData.role());
@@ -60,6 +55,11 @@ public class SecurityFilter extends OncePerRequestFilter {
                     userData, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         });
+    }
+
+    private Optional<JWTUserData> retornarUserDetailsDeToken(String autorizedHeader) {
+        String token = autorizedHeader.replace("Bearer ", "");
+        return tokenConfig.validateToken(token);
     }
 
     private Set<GrantedAuthority> retornarAuthorities(String role) {
