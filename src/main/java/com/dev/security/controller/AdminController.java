@@ -31,11 +31,14 @@ public class AdminController {
 
     @PostMapping(value = "/register", consumes = "application/json")
     public ResponseEntity<RegisterUserResponse> criarAdmin(
-        @Valid @RequestBody RegisterUserRequest request) {
+            @Valid @RequestBody RegisterUserRequest request) {
 
         User newAdmin = new User();
 
         newAdmin.setName(request.nome());
+        if (repo.findUserByEmail(request.email()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado");
+        }
         newAdmin.setEmail(request.email());
         newAdmin.setPassword(passwordEncoder.encode(request.senha()));
         newAdmin.setRole(UserRole.ADMIN);
@@ -44,12 +47,6 @@ public class AdminController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new RegisterUserResponse(newAdmin.getName(), newAdmin.getEmail()));
-    }
-
-
-    @GetMapping(value = "/users", consumes = "application/json")
-    public ResponseEntity<?> listarUsuarios() {
-        return ResponseEntity.ok().build();
     }
 
 }

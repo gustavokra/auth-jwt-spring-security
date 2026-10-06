@@ -61,6 +61,9 @@ public class AuthController {
         User newUser = new User();
 
         newUser.setName(request.nome());
+        if (repo.findUserByEmail(request.email()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado");
+        }
         newUser.setEmail(request.email());
         newUser.setPassword(passwordEncoder.encode(request.senha()));
         newUser.setRole(UserRole.USER);

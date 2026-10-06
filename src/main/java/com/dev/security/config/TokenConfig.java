@@ -22,11 +22,14 @@ public class TokenConfig {
 
     public String generateToken(User user) {
         Algorithm algorith = Algorithm.HMAC256(secret);
+        Instant now = Instant.now();
+
         return JWT.create()
                 .withClaim("userId", user.getId())
                 .withClaim("role", user.getRole().name())
                 .withIssuer("security-api")
                 .withSubject(user.getEmail())
+                .withIssuedAt(now)
                 .withExpiresAt(gerarExpiresAt())
                 .sign(algorith);
     }
