@@ -20,13 +20,11 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos");
     }
 
-    // Cobre outras falhas de autenticação genéricas
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, Object>> handleAuthentication(AuthenticationException ex) {
         return buildError(HttpStatus.UNAUTHORIZED, "Falha na autenticação");
     }
 
-    // Erros de validação dos DTOs (@NotEmpty, @Email, etc.)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> fields = new HashMap<>();

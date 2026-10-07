@@ -40,24 +40,19 @@ private void validateHeaderAndDoFilterInternal(
 
     String authorizedHeader = request.getHeader("Authorization");
 
-    // Cliente enviou token → precisa ser válido
     if (Strings.isNotEmpty(authorizedHeader) && authorizedHeader.startsWith("Bearer ")) {
 
         Optional<JWTUserData> userData = retornarUserDetailsDeToken(authorizedHeader);
 
         if (userData.isEmpty()) {
-            // Token inválido, expirado ou malformado
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Token inválido ou expirado\"}");
-            return; // NÃO chama filterChain.doFilter → para aqui
         }
 
-        // Token válido → popula o contexto
         adcUserDetalhesSecurityContext(userData);
     }
 
-    // Sem header OU token válido → continua
     filterChain.doFilter(request, response);
 }
 
