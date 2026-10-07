@@ -6,9 +6,9 @@ services:
     container_name: postgres-db-tutorial-seguranca
     restart: always
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: tutorialseguranca
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5433:5432"
     volumes:
@@ -16,3 +16,6 @@ services:
 
 volumes:
   postgres_data:
+
+env_file:
+  - .env
