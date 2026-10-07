@@ -28,8 +28,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                   "status": 401,
                   "error": "Não autenticado. Envie um token válido no header Authorization."
                 }
-                """.formatted(Instant.now().toString());
-
+                """.formatted(Instant.now().toString()); 
+  
         response.getWriter().write(body);
     }
 }
