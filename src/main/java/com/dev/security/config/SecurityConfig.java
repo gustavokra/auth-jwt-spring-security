@@ -13,19 +13,30 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.dev.security.config.exception.CustomAccessDeniedHandler;
+import com.dev.security.config.exception.CustomAuthenticationEntryPoint;
+
 import jakarta.servlet.DispatcherType;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-// @EnableMethodSecurity
+    // @EnableMethodSecurity
     private final SecurityFilter securityFilter;
     private final CorsConfig corsConfig;
-    
-    public SecurityConfig(SecurityFilter securityFilter, CorsConfig corsConfig) {
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+
+    public SecurityConfig(
+            SecurityFilter securityFilter,
+            CorsConfig corsConfig,
+            CustomAuthenticationEntryPoint authenticationEntryPoint,
+            CustomAccessDeniedHandler accessDeniedHandler) {
         this.securityFilter = securityFilter;
         this.corsConfig = corsConfig;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -51,7 +62,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/admin/register").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/test").permitAll()
                         .anyRequest().authenticated())
-                        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint) // 401
+                        .accessDeniedHandler(accessDeniedHandler)) // 403
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
