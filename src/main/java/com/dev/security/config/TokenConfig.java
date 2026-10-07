@@ -38,7 +38,11 @@ public class TokenConfig {
         try {
             Algorithm algorith = Algorithm.HMAC256(secret);
 
-            DecodedJWT decode = JWT.require(algorith).build().verify(token);
+            DecodedJWT decode = JWT.require(algorith)
+                    .withIssuer("security-api")
+                    .build()
+                    .verify(token);
+            ;
 
             return Optional.of(JWTUserData.builder()
                     .userId(decode.getClaim("userId").asLong())
