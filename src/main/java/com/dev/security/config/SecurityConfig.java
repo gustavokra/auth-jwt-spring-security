@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.dev.security.config.exception.CustomAccessDeniedHandler;
 import com.dev.security.config.exception.CustomAuthenticationEntryPoint;
+import com.dev.security.config.rateLimiting.RateLimitFilter;
 
 import jakarta.servlet.DispatcherType;
 
@@ -27,16 +28,19 @@ public class SecurityConfig {
     private final CorsConfig corsConfig;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final RateLimitFilter rateLimitFilter;
 
     public SecurityConfig(
             SecurityFilter securityFilter,
             CorsConfig corsConfig,
             CustomAuthenticationEntryPoint authenticationEntryPoint,
-            CustomAccessDeniedHandler accessDeniedHandler) {
+            CustomAccessDeniedHandler accessDeniedHandler,
+            RateLimitFilter rateLimitFilter) {
         this.securityFilter = securityFilter;
         this.corsConfig = corsConfig;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -65,6 +69,7 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(authenticationEntryPoint) // 401
                         .accessDeniedHandler(accessDeniedHandler)) // 403
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
