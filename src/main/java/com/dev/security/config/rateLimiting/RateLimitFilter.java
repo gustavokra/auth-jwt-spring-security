@@ -33,17 +33,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    FilterChain filterChain) throws ServletException, IOException  {
 
         String path = request.getRequestURI();
 
-        // Só aplica nos endpoints sensíveis
         if (path.equals("/api/v1/auth/login") || path.equals("/api/v1/auth/register")) {
             String ip = getClientIP(request);
             Bucket bucket = cache.computeIfAbsent(ip, k -> createNewBucket());
 
             if (!bucket.tryConsume(1)) {
-                response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value()); // 429
+                response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
                 response.setContentType("application/json");
                 response.getWriter().write("""
                     {"error": "Muitas tentativas. Tente novamente em alguns minutos."}
