@@ -16,6 +16,16 @@ services:
     env_file:
       - .env
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis-rate-limit
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    restart: always
+
 volumes:
   postgres_data:
 
