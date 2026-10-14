@@ -1,5 +1,6 @@
 package com.dev.security.entity;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -33,6 +34,10 @@ public class User implements UserDetails {
     private String email;
     private String password;
 
+    private int failedLoginAttempts = 0;
+    private LocalDateTime lockTime;
+    private boolean accountNonLocked = true;
+
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
@@ -49,6 +54,23 @@ public class User implements UserDetails {
                 new SimpleGrantedAuthority("ROLE_USER"));
     }
 
+
+
+    @Override
+    public boolean isAccountNonLocked() {
+        if (!this.accountNonLocked && lockTime != null) {
+            // Desbloqueia automaticamente depois de 15 minutos
+            if (LocalDateTime.now().isAfter(lockTime.plusMinutes(15))) {
+                this.accountNonLocked = true;
+                this.failedLoginAttempts = 0;
+                this.lockTime = null;
+                return true;
+            }
+            return false;
+        }
+        return this.accountNonLocked;
+    }
+
     @Override
     public String getUsername() {
         return email;
@@ -59,13 +81,29 @@ public class User implements UserDetails {
         return password;
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
+    public int getFailedLoginAttempts() {
+        return this.failedLoginAttempts;
     }
 
+    public void setFailedLoginAttempts(int failedLoginAttempts) {
+        this.failedLoginAttempts = failedLoginAttempts;
+    }
+
+    public LocalDateTime getLockTime() {
+        return this.lockTime;
+    }
+
+    public void setLockTime(LocalDateTime lockTime) {
+        this.lockTime = lockTime;
+    }
+
+    public void setAccountNonLocked(boolean accountNonLocked) {
+        this.accountNonLocked = accountNonLocked;
+    }
+
+
     @Override
-    public boolean isAccountNonLocked() {
+    public boolean isAccountNonExpired() {
         return true;
     }
 
@@ -78,5 +116,7 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+
 
 }
