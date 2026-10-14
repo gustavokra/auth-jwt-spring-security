@@ -25,7 +25,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     public RateLimitFilter(ProxyManager<String> proxyManager) {
         this.proxyManager = proxyManager;
-        // 10 tentativas por minuto
         this.configSupplier = () -> BucketConfiguration.builder()
                 .addLimit(Bandwidth.builder()
                         .capacity(10)
