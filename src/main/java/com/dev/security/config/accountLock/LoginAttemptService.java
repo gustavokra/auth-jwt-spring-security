@@ -9,11 +9,28 @@ import com.dev.security.repository.UserRepository;
 @Service
 public class LoginAttemptService {
     private static final int MAX_ATTEMPTS = 5;
+    private static final int DELAY_START_AT = 3;
 
     private final UserRepository userRepository;
 
     public LoginAttemptService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    public void applyProgressiveDelay(String email) {
+        userRepository.findUserByEmail(email).ifPresent(user -> {
+            int attempts = user.getFailedLoginAttempts();
+            if (attempts >= DELAY_START_AT) {
+                long delayMs = attempts * 1000L; // 3s, 4s, 5s...
+                // limite opcional, ex.: no máximo 10s
+                delayMs = Math.min(delayMs, 10_000L);
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        });
     }
 
     public void loginSucceeded(String email) {

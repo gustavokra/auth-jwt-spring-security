@@ -4,5 +4,3 @@ CREATE TABLE users(
     email varchar(255),
     password varchar(255)
 );
-
-

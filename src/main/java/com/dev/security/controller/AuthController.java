@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.dev.security.config.TokenConfig;
+import com.dev.security.config.accountLock.LoginAttemptService;
 import com.dev.security.dto.request.LoginRequest;
 import com.dev.security.dto.request.RegisterUserRequest;
 import com.dev.security.dto.response.LoginResponse;
@@ -31,19 +32,24 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final TokenConfig tokenConfig;
+    private final LoginAttemptService loginAttemptService;
 
     public AuthController(UserRepository repo,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
-            TokenConfig tokenConfig) {
+            TokenConfig tokenConfig,
+            LoginAttemptService loginAttemptService) {
         this.repo = repo;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.tokenConfig = tokenConfig;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @PostMapping(value = "/login", consumes = "application/json")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+
+        loginAttemptService.applyProgressiveDelay(request.email());
 
         UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(request.email(),
                 request.password());
