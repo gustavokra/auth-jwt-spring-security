@@ -48,6 +48,7 @@ private void validateHeaderAndDoFilterInternal(
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Token inválido ou expirado\"}");
+            return;
         }
 
         adcUserDetalhesSecurityContext(userData);
