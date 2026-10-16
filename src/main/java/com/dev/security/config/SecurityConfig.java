@@ -23,7 +23,6 @@ import jakarta.servlet.DispatcherType;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // @EnableMethodSecurity
     private final SecurityFilter securityFilter;
     private final CorsConfig corsConfig;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;

@@ -21,8 +21,7 @@ public class LoginAttemptService {
         userRepository.findUserByEmail(email).ifPresent(user -> {
             int attempts = user.getFailedLoginAttempts();
             if (attempts >= DELAY_START_AT) {
-                long delayMs = attempts * 1000L; // 3s, 4s, 5s...
-                // limite opcional, ex.: no máximo 10s
+                long delayMs = attempts * 1000L;
                 delayMs = Math.min(delayMs, 10_000L);
                 try {
                     Thread.sleep(delayMs);
