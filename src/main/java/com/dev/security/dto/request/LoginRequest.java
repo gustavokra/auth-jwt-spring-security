@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 
 public record LoginRequest(@Email @NotEmpty(message = "Email é obrigatório") String email,
-                @NotEmpty(message = "Senha é obrigatória") String password) {
+        @NotEmpty(message = "Senha é obrigatória") String password,
+        String captchaToken) {
 
 }

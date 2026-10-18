@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.dev.security.config.TokenConfig;
 import com.dev.security.config.accountLock.LoginAttemptService;
+import com.dev.security.config.captcha.CaptchaService;
 import com.dev.security.dto.request.LoginRequest;
 import com.dev.security.dto.request.RegisterUserRequest;
 import com.dev.security.dto.response.LoginResponse;
@@ -33,21 +34,28 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final TokenConfig tokenConfig;
     private final LoginAttemptService loginAttemptService;
+    private final CaptchaService captchaService;
 
     public AuthController(UserRepository repo,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
             TokenConfig tokenConfig,
-            LoginAttemptService loginAttemptService) {
+            LoginAttemptService loginAttemptService,
+            CaptchaService captchaService) {
         this.repo = repo;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.tokenConfig = tokenConfig;
         this.loginAttemptService = loginAttemptService;
+        this.captchaService = captchaService;
     }
 
     @PostMapping(value = "/login", consumes = "application/json")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+
+        if (!captchaService.isValid(request.captchaToken())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CAPTCHA inválido ou não resolvido");
+        }
 
         loginAttemptService.applyProgressiveDelay(request.email());
 
