@@ -57,8 +57,6 @@ public class User implements UserDetails {
                 new SimpleGrantedAuthority("ROLE_USER"));
     }
 
-
-
     @Override
     public boolean isAccountNonLocked() {
         if (!this.accountNonLocked && lockTime != null) {

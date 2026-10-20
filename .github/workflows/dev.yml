@@ -1,0 +1,22 @@
+name: deploy na aws
+
+on:
+    push:
+        branches: [master]
+        
+jobs: 
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Fazendo configuracao do java
+              uses: actions/setup-java@v3
+              with:
+                distribution: "zulu"
+                java-version: "21"
+
+            - name: Fazendo build do projeto
+              run: mvn clean install && ls
