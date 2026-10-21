@@ -49,7 +49,7 @@ jobs:
               run: |
                 printf '%s' "$ENV_FILE" > .env
 
-            - name: Fazendo build do projeto
+            - name: Fazendo build
               run: mvn clean install && ls
 
             - name: Copiando jar para EC2
