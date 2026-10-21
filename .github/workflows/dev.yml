@@ -18,5 +18,11 @@ jobs:
                 distribution: "zulu"
                 java-version: "21"
 
+            - name: Criando arquivo .env
+              env:
+                ENV_FILE: ${{ secrets.ENV_FILE }}
+              run: |
+                printf '%s' "$ENV_FILE" > .env
+
             - name: Fazendo build do projeto
               run: mvn clean install && ls
