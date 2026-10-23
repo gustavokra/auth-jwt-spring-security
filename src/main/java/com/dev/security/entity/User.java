@@ -59,17 +59,16 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        if (!this.accountNonLocked && lockTime != null) {
-            // Desbloqueia automaticamente depois de 15 minutos
-            if (LocalDateTime.now().isAfter(lockTime.plusMinutes(15))) {
-                this.accountNonLocked = true;
-                this.failedLoginAttempts = 0;
-                this.lockTime = null;
-                return true;
-            }
-            return false;
+        if (!this.accountNonLocked && this.lockTime != null) {
+            return LocalDateTime.now().isAfter(this.lockTime.plusMinutes(15));
         }
         return this.accountNonLocked;
+    }
+
+    public boolean isLockExpired() {
+        return !this.accountNonLocked
+                && this.lockTime != null
+                && LocalDateTime.now().isAfter(this.lockTime.plusMinutes(15));
     }
 
     @Override
@@ -86,22 +85,10 @@ public class User implements UserDetails {
         return this.failedLoginAttempts;
     }
 
-    public void setFailedLoginAttempts(int failedLoginAttempts) {
-        this.failedLoginAttempts = failedLoginAttempts;
-    }
 
     public LocalDateTime getLockTime() {
         return this.lockTime;
     }
-
-    public void setLockTime(LocalDateTime lockTime) {
-        this.lockTime = lockTime;
-    }
-
-    public void setAccountNonLocked(boolean accountNonLocked) {
-        this.accountNonLocked = accountNonLocked;
-    }
-
 
     @Override
     public boolean isAccountNonExpired() {
@@ -117,7 +104,5 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
-
 
 }

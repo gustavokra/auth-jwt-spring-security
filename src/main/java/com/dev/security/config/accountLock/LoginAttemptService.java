@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
+import com.dev.security.entity.User;
 import com.dev.security.repository.UserRepository;
 
 @Service
@@ -53,4 +54,14 @@ public class LoginAttemptService {
             userRepository.save(user);
         });
     }
+
+    public void unlockIfExpired(User user) {
+        if (user.isLockExpired()) {
+            user.setAccountNonLocked(true);
+            user.setFailedLoginAttempts(0);
+            user.setLockTime(null);
+            userRepository.save(user);
+        }
+    }
+
 }

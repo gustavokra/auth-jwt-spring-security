@@ -1,8 +1,6 @@
 package com.dev.security.config;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,13 +54,11 @@ public class TokenConfig {
                     .build()
                     .verify(token);
 
-            // recusa se estiver na denylist (logout)
             String jti = decoded.getId();
             if (denylistService.isRevoked(jti)) {
                 return Optional.empty();
             }
 
-            // opcional: só aceitar access
             String type = decoded.getClaim("type").asString();
             if (type != null && !"access".equals(type)) {
                 return Optional.empty();
@@ -79,17 +75,11 @@ public class TokenConfig {
         }
     }
 
-    /**
-     * Coloca o access token na denylist até a data de expiração original.
-     * Usa decode (sem validar assinatura de novo) só para ler jti e exp;
-     * se quiser ser mais rígido, valide com verify antes.
-     */
     public void revokeAccessToken(String token) {
         if (token == null || token.isBlank()) {
             return;
         }
         try {
-            // verify garante que só revogamos token nosso/válido
             Algorithm algorithm = Algorithm.HMAC256(secret);
             DecodedJWT decoded = JWT.require(algorithm)
                     .withIssuer("security-api")
@@ -101,7 +91,6 @@ public class TokenConfig {
             denylistService.revoke(jti, expiresAt);
 
         } catch (JWTVerificationException ex) {
-            // token inválido/expirado: tenta pelo menos ler jti/exp sem verify
             try {
                 DecodedJWT decoded = JWT.decode(token);
                 String jti = decoded.getId();

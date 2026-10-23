@@ -96,7 +96,6 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Conta bloqueada");
         }
 
-        // Rotação: invalida o refresh antigo
         refreshTokenService.revokeByKey(session.redisKey());
 
         String newAccess = tokenConfig.generateAccessToken(user);
