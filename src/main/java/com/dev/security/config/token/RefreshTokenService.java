@@ -1,4 +1,4 @@
-package com.dev.security.config.refreshToken;
+package com.dev.security.config.token;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

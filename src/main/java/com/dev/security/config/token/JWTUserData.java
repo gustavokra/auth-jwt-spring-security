@@ -1,4 +1,4 @@
-package com.dev.security.config;
+package com.dev.security.config.token;
 
 import lombok.Builder;
 

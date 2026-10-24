@@ -1,4 +1,4 @@
-package com.dev.security.config;
+package com.dev.security.config.token;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -13,7 +13,6 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.dev.security.config.refreshToken.TokenDenylistService;
 import com.dev.security.entity.User;
 
 @Component

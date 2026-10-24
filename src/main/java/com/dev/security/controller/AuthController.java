@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.dev.security.config.TokenConfig;
 import com.dev.security.config.accountLock.LoginAttemptService;
 import com.dev.security.config.captcha.CaptchaService;
-import com.dev.security.config.refreshToken.RefreshTokenService;
+import com.dev.security.config.token.RefreshTokenService;
+import com.dev.security.config.token.TokenConfig;
 import com.dev.security.dto.request.LoginRequest;
 import com.dev.security.dto.request.RefreshRequest;
 import com.dev.security.dto.request.RegisterUserRequest;
