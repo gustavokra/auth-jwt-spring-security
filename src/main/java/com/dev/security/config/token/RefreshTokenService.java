@@ -28,7 +28,6 @@ public class RefreshTokenService {
         String rawToken = generateRawToken();
         String key = KEY_PREFIX + sha256(rawToken);
 
-        // valor: userId:email  (ou JSON se preferir)
         String value = userId + ":" + email;
         redis.opsForValue().set(key, value, TTL);
 
