@@ -21,6 +21,7 @@ import com.dev.security.dto.request.LoginRequest;
 import com.dev.security.dto.request.RefreshRequest;
 import com.dev.security.dto.request.RegisterUserRequest;
 import com.dev.security.dto.response.LoginResponse;
+import com.dev.security.dto.response.MessageResponse;
 import com.dev.security.dto.response.RegisterUserResponse;
 import com.dev.security.entity.User;
 import com.dev.security.enums.UserRole;
@@ -65,8 +66,6 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CAPTCHA inválido ou não resolvido");
         }
 
-        loginAttemptService.applyProgressiveDelay(request.email());
-
         UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(request.email(),
                 request.password());
 
@@ -104,39 +103,39 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(newAccess, newRefresh));
     }
 
-@PostMapping("/logout")
-public ResponseEntity<Void> logout(
-        @RequestHeader(value = "Authorization", required = false) String authorization,
-        @RequestBody(required = false) RefreshRequest body) {
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestBody(required = false) RefreshRequest body) {
 
-    if (authorization != null && authorization.startsWith("Bearer ")) {
-        tokenConfig.revokeAccessToken(authorization.substring(7).trim());
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            tokenConfig.revokeAccessToken(authorization.substring(7).trim());
+        }
+
+        if (body != null && body.refreshToken() != null) {
+            refreshTokenService.revoke(body.refreshToken());
+        }
+
+        return ResponseEntity.noContent().build();
     }
-
-    if (body != null && body.refreshToken() != null) {
-        refreshTokenService.revoke(body.refreshToken());
-    }
-
-    return ResponseEntity.noContent().build();
-}
 
     @PostMapping(value = "/register", consumes = "application/json")
-    public ResponseEntity<RegisterUserResponse> register(
+    public ResponseEntity<MessageResponse> register(
             @Valid @RequestBody RegisterUserRequest request) {
-        User newUser = new User();
 
-        newUser.setName(request.nome());
-        if (repo.findUserByEmail(request.email()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado");
+        final String generic = "Se os dados forem válidos, a conta foi criada. Faça login.";
+
+        if (repo.findUserByEmail(request.email()).isEmpty()) {
+            User newUser = new User();
+            newUser.setName(request.nome());
+            newUser.setEmail(request.email());
+            newUser.setPassword(passwordEncoder.encode(request.senha()));
+            newUser.setRole(UserRole.USER);
+            repo.save(newUser);
         }
-        newUser.setEmail(request.email());
-        newUser.setPassword(passwordEncoder.encode(request.senha()));
-        newUser.setRole(UserRole.USER);
-
-        repo.save(newUser);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new RegisterUserResponse(newUser.getName(), newUser.getEmail()));
+                .body(new MessageResponse(generic));
     }
 
 }

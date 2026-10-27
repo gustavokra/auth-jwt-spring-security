@@ -18,20 +18,6 @@ public class LoginAttemptService {
         this.userRepository = userRepository;
     }
 
-    public void applyProgressiveDelay(String email) {
-        userRepository.findUserByEmail(email).ifPresent(user -> {
-            int attempts = user.getFailedLoginAttempts();
-            if (attempts >= DELAY_START_AT) {
-                long delayMs = attempts * 1000L;
-                delayMs = Math.min(delayMs, 10_000L);
-                try {
-                    Thread.sleep(delayMs);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        });
-    }
 
     public void loginSucceeded(String email) {
         userRepository.findUserByEmail(email).ifPresent(user -> {
