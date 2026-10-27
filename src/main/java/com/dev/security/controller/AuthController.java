@@ -37,7 +37,6 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final TokenConfig tokenConfig;
-    private final LoginAttemptService loginAttemptService;
     private final CaptchaService captchaService;
     private final RefreshTokenService refreshTokenService;
 
@@ -53,7 +52,6 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.tokenConfig = tokenConfig;
-        this.loginAttemptService = loginAttemptService;
         this.captchaService = captchaService;
         this.refreshTokenService = refreshTokenService;
 
