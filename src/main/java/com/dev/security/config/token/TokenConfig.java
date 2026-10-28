@@ -102,4 +102,26 @@ public class TokenConfig {
         }
     }
 
+    
+    public Optional<String> extractEmail(String token) {
+        if (token == null || token.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            DecodedJWT decoded = JWT.require(algorithm)
+                    .withIssuer("security-api")
+                    .build()
+                    .verify(token);
+            return Optional.ofNullable(decoded.getSubject());
+        } catch (JWTVerificationException ex) {
+            try {
+                // token expirado: ainda dá para ler o subject
+                return Optional.ofNullable(JWT.decode(token).getSubject());
+            } catch (Exception e) {
+                return Optional.empty();
+            }
+        }
+    }
+
 }

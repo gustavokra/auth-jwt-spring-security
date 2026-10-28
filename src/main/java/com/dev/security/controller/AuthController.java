@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.dev.security.config.accountLock.LoginAttemptService;
+import com.dev.security.config.audit.SecurityAuditLogger;
 import com.dev.security.config.captcha.CaptchaService;
 import com.dev.security.config.token.RefreshTokenService;
 import com.dev.security.config.token.TokenConfig;
@@ -22,11 +23,11 @@ import com.dev.security.dto.request.RefreshRequest;
 import com.dev.security.dto.request.RegisterUserRequest;
 import com.dev.security.dto.response.LoginResponse;
 import com.dev.security.dto.response.MessageResponse;
-import com.dev.security.dto.response.RegisterUserResponse;
 import com.dev.security.entity.User;
 import com.dev.security.enums.UserRole;
 import com.dev.security.repository.UserRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -39,6 +40,7 @@ public class AuthController {
     private final TokenConfig tokenConfig;
     private final CaptchaService captchaService;
     private final RefreshTokenService refreshTokenService;
+    private final SecurityAuditLogger audit;
 
     public AuthController(UserRepository repo,
             PasswordEncoder passwordEncoder,
@@ -46,7 +48,8 @@ public class AuthController {
             TokenConfig tokenConfig,
             LoginAttemptService loginAttemptService,
             CaptchaService captchaService,
-            RefreshTokenService refreshTokenService) {
+            RefreshTokenService refreshTokenService,
+            SecurityAuditLogger audit) {
 
         this.repo = repo;
         this.passwordEncoder = passwordEncoder;
@@ -54,13 +57,15 @@ public class AuthController {
         this.tokenConfig = tokenConfig;
         this.captchaService = captchaService;
         this.refreshTokenService = refreshTokenService;
-
+        this.audit = audit;
     }
 
     @PostMapping(value = "/login", consumes = "application/json")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest) {
 
         if (!captchaService.isValid(request.captchaToken())) {
+            audit.captchaInvalid(request.email(), clientIp(httpRequest));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CAPTCHA inválido ou não resolvido");
         }
 
@@ -90,6 +95,9 @@ public class AuthController {
 
         if (!user.isAccountNonLocked()) {
             refreshTokenService.revokeByKey(session.redisKey());
+
+            audit.refreshFailure("invalid_or_expired_refresh");
+
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Conta bloqueada");
         }
 
@@ -97,6 +105,8 @@ public class AuthController {
 
         String newAccess = tokenConfig.generateAccessToken(user);
         String newRefresh = refreshTokenService.create(user.getId(), user.getEmail());
+
+        audit.refreshSuccess(session.email());
 
         return ResponseEntity.ok(new LoginResponse(newAccess, newRefresh));
     }
@@ -106,13 +116,19 @@ public class AuthController {
             @RequestHeader(value = "Authorization", required = false) String authorization,
             @RequestBody(required = false) RefreshRequest body) {
 
+        String accessToken = null;
+
         if (authorization != null && authorization.startsWith("Bearer ")) {
-            tokenConfig.revokeAccessToken(authorization.substring(7).trim());
+            accessToken = authorization.substring(7).trim();
+            tokenConfig.revokeAccessToken(accessToken);
         }
 
         if (body != null && body.refreshToken() != null) {
             refreshTokenService.revoke(body.refreshToken());
         }
+
+        String email = tokenConfig.extractEmail(accessToken).orElse("-");
+        audit.logout(email);
 
         return ResponseEntity.noContent().build();
     }
@@ -134,6 +150,14 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new MessageResponse(generic));
+    }
+
+    private String clientIp(HttpServletRequest request) {
+        String xf = request.getHeader("X-Forwarded-For");
+        if (xf == null || xf.isBlank()) {
+            return request.getRemoteAddr();
+        }
+        return xf.split(",")[0].trim();
     }
 
 }
