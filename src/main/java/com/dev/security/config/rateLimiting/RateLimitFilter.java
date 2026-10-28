@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.dev.security.config.audit.SecurityAuditLogger;
+
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
@@ -22,9 +24,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final ProxyManager<String> proxyManager;
     private final Supplier<BucketConfiguration> configSupplier;
+    private final SecurityAuditLogger audit;
 
-    public RateLimitFilter(ProxyManager<String> proxyManager) {
+    public RateLimitFilter(ProxyManager<String> proxyManager, SecurityAuditLogger audit) {
         this.proxyManager = proxyManager;
+        this.audit = audit;
         this.configSupplier = () -> BucketConfiguration.builder()
                 .addLimit(Bandwidth.builder()
                         .capacity(5)
@@ -35,8 +39,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
@@ -51,8 +55,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
                 response.setContentType("application/json");
                 response.getWriter().write("""
-                    {"error": "Muitas tentativas. Tente novamente em alguns minutos."}
-                    """);
+                        {"error": "Muitas tentativas. Tente novamente em alguns minutos."}
+                        """);
+
+                audit.rateLimited(ip, path);
+                
                 return;
             }
         }

@@ -87,16 +87,21 @@ public class AuthController {
 
         RefreshTokenService.RefreshSession session = refreshTokenService
                 .find(request.refreshToken())
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh inválido ou expirado"));
+                .orElseThrow(() -> {
+                    audit.refreshFailure("invalid_or_expired_refresh");
+                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh inválido ou expirado");
+                });
 
         User user = repo.findUserByEmail(session.email())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não encontrado"));
+                .orElseThrow(() -> {
+                    audit.refreshFailure("user_not_found");
+                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não encontrado");
+                });
 
         if (!user.isAccountNonLocked()) {
             refreshTokenService.revokeByKey(session.redisKey());
 
-            audit.refreshFailure("invalid_or_expired_refresh");
+            audit.refreshFailure("account_locked");
 
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Conta bloqueada");
         }
