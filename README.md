@@ -3,4 +3,5 @@ Spring Security,
 JWT,
 Rate Limiting,
 Captcha,
-Account Lock
+Account Lock,
+Logs de Auditoria

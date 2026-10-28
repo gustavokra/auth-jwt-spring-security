@@ -27,7 +27,7 @@ public class AuthenticationEventListener {
     public void onSuccess(AuthenticationSuccessEvent event) {
         String email = event.getAuthentication().getName();
         loginAttemptService.loginSucceeded(email);
-        audit.loginSuccess(email, currentIp()); // ver nota sobre IP abaixo
+        audit.loginSuccess(email, currentIp());
     }
 
     @EventListener
