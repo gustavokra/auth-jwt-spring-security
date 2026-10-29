@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,14 +30,10 @@ class AuthSecurityTests {
     @Autowired
     private WebApplicationContext context;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockitoBean
     private CaptchaService captchaService;
-
-    // Se RateLimit/Redis quebrar o contexto, mocke o que for necessário:
-    // @MockitoBean private ProxyManager<String> proxyManager;
 
     private MockMvc mockMvc;
 
@@ -60,10 +57,10 @@ class AuthSecurityTests {
     @Test
     void adminRegister_withoutToken_returns401() throws Exception {
         mockMvc.perform(post("/api/v1/admin/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {"nome":"Admin","email":"a@test.com","senha":"senha12345"}
-                            """))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"nome":"Admin","email":"a@test.com","senha":"senha12345"}
+                        """))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -72,27 +69,28 @@ class AuthSecurityTests {
         when(captchaService.isValid(anyString())).thenReturn(false);
 
         mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {"email":"user@test.com","password":"senha12345","captchaToken":"x"}
-                            """))
+                .header("X-Forwarded-For", "203.0.113.50")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"email":"user@test.com","password":"senha12345","captchaToken":"x"}
+                        """))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void register_thenLogin_returnsTokens() throws Exception {
         mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {"nome":"User","email":"user@test.com","senha":"senha12345"}
-                            """))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"nome":"User","email":"user@test.com","senha":"senha12345"}
+                        """))
                 .andExpect(status().isCreated());
 
         MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {"email":"user@test.com","password":"senha12345","captchaToken":"ok"}
-                            """))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"email":"user@test.com","password":"senha12345","captchaToken":"ok"}
+                        """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andExpect(jsonPath("$.refreshToken").isNotEmpty())
@@ -103,21 +101,21 @@ class AuthSecurityTests {
 
         // admin sem role ADMIN → 403
         mockMvc.perform(post("/api/v1/admin/register")
-                        .header("Authorization", "Bearer " + access)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {"nome":"Outro","email":"outro@test.com","senha":"senha12345"}
-                            """))
+                .header("Authorization", "Bearer " + access)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"nome":"Outro","email":"outro@test.com","senha":"senha12345"}
+                        """))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void refresh_withInvalidToken_returns401() throws Exception {
         mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {"refreshToken":"token-invalido"}
-                            """))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"refreshToken":"token-invalido"}
+                        """))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -125,17 +123,17 @@ class AuthSecurityTests {
     void logout_thenAccessTokenRejected() throws Exception {
         // register + login
         mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {"nome":"User2","email":"user2@test.com","senha":"senha12345"}
-                            """))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"nome":"User2","email":"user2@test.com","senha":"senha12345"}
+                        """))
                 .andExpect(status().isCreated());
 
         MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {"email":"user2@test.com","password":"senha12345","captchaToken":"ok"}
-                            """))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"email":"user2@test.com","password":"senha12345","captchaToken":"ok"}
+                        """))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -144,18 +142,18 @@ class AuthSecurityTests {
         String refresh = body.get("refreshToken").asText();
 
         mockMvc.perform(post("/api/v1/auth/logout")
-                        .header("Authorization", "Bearer " + access)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"refreshToken\":\"" + refresh + "\"}"))
+                .header("Authorization", "Bearer " + access)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"refreshToken\":\"" + refresh + "\"}"))
                 .andExpect(status().isNoContent());
 
         // access na denylist → 401 em rota protegida
         mockMvc.perform(post("/api/v1/admin/register")
-                        .header("Authorization", "Bearer " + access)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {"nome":"X","email":"x@test.com","senha":"senha12345"}
-                            """))
+                .header("Authorization", "Bearer " + access)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"nome":"X","email":"x@test.com","senha":"senha12345"}
+                        """))
                 .andExpect(status().isUnauthorized());
     }
 }
