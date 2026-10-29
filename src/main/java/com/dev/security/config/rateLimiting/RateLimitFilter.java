@@ -45,7 +45,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        if (path.equals("/api/v1/auth/login") || path.equals("/api/v1/auth/register")) {
+        if (path.equals("/api/v1/auth/login")
+                || path.equals("/api/v1/auth/register")
+                || path.equals("/api/v1/auth/refresh")) {
             String ip = getClientIP(request);
 
             // bucket compartilhado no Redis, chave = IP
@@ -59,7 +61,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                         """);
 
                 audit.rateLimited(ip, path);
-                
+
                 return;
             }
         }
