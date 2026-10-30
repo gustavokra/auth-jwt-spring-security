@@ -2,6 +2,7 @@ package com.dev.security.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +30,7 @@ public class AdminController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value = "/register", consumes = "application/json")
     public ResponseEntity<RegisterUserResponse> criarAdmin(
             @Valid @RequestBody RegisterUserRequest request) {
