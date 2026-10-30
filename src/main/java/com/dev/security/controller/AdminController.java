@@ -32,18 +32,16 @@ public class AdminController {
     @PostMapping(value = "/register", consumes = "application/json")
     public ResponseEntity<RegisterUserResponse> criarAdmin(
             @Valid @RequestBody RegisterUserRequest request) {
-
+        final String generic = "Se os dados forem válidos, o admin foi criado.";
         User newAdmin = new User();
 
-        newAdmin.setName(request.nome());
-        if (repo.findUserByEmail(request.email()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado");
+        if (repo.findUserByEmail(request.email()).isEmpty()) {
+            newAdmin.setName(request.nome());
+            newAdmin.setEmail(request.email());
+            newAdmin.setPassword(passwordEncoder.encode(request.senha()));
+            newAdmin.setRole(UserRole.ADMIN);
+            repo.save(newAdmin);
         }
-        newAdmin.setEmail(request.email());
-        newAdmin.setPassword(passwordEncoder.encode(request.senha()));
-        newAdmin.setRole(UserRole.ADMIN);
-
-        repo.save(newAdmin);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new RegisterUserResponse(newAdmin.getName(), newAdmin.getEmail()));
