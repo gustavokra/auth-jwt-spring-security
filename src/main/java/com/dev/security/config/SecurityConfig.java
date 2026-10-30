@@ -86,8 +86,8 @@ public class SecurityConfig {
                                 .exceptionHandling(ex -> ex
                                                 .authenticationEntryPoint(authenticationEntryPoint) // 401
                                                 .accessDeniedHandler(accessDeniedHandler)) // 403
-                                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(rateLimitFilter, SecurityFilter.class)
                                 .build();
         }
 
