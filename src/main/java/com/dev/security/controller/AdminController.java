@@ -8,10 +8,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.dev.security.dto.request.RegisterUserRequest;
-import com.dev.security.dto.response.RegisterUserResponse;
+import com.dev.security.dto.response.MessageResponse;
 import com.dev.security.entity.User;
 import com.dev.security.enums.UserRole;
 import com.dev.security.repository.UserRepository;
@@ -32,7 +31,7 @@ public class AdminController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value = "/register", consumes = "application/json")
-    public ResponseEntity<RegisterUserResponse> criarAdmin(
+    public ResponseEntity<MessageResponse> criarAdmin(
             @Valid @RequestBody RegisterUserRequest request) {
         final String generic = "Se os dados forem válidos, o admin foi criado.";
         User newAdmin = new User();
@@ -46,7 +45,7 @@ public class AdminController {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new RegisterUserResponse(newAdmin.getName(), newAdmin.getEmail()));
+                .body(new MessageResponse(generic));
     }
 
 }
