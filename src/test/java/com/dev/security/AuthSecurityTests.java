@@ -58,7 +58,7 @@ class AuthSecurityTests {
         mockMvc.perform(post("/api/v1/admin/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"nome":"Admin","email":"a@test.com","senha":"senha12345"}
+                        {"nome":"Admin","email":"a@test.com","senha":"Senha123!"}
                         """))
                 .andExpect(status().isUnauthorized());
     }
@@ -71,25 +71,27 @@ class AuthSecurityTests {
                 .header("X-Forwarded-For", "203.0.113.50")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"email":"user@test.com","password":"senha12345","captchaToken":"x"}
+                        {"email":"user@test.com","password":"Senha123!","captchaToken":"x"}
                         """))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void register_thenLogin_returnsTokens() throws Exception {
+        String email = "user_" + System.currentTimeMillis() + "@test.com";
+
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"nome":"User","email":"user@test.com","senha":"senha12345"}
-                        """))
+                        {"nome":"User","email":"%s","senha":"Senha123!"}
+                        """.formatted(email)))
                 .andExpect(status().isCreated());
 
         MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"email":"user@test.com","password":"senha12345","captchaToken":"ok"}
-                        """))
+                        {"email":"%s","password":"Senha123!","captchaToken":"ok"}
+                        """.formatted(email)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andExpect(jsonPath("$.refreshToken").isNotEmpty())
@@ -103,7 +105,7 @@ class AuthSecurityTests {
                 .header("Authorization", "Bearer " + access)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"nome":"Outro","email":"outro@test.com","senha":"senha12345"}
+                        {"nome":"Outro","email":"outro@test.com","senha":"Senha123!"}
                         """))
                 .andExpect(status().isForbidden());
     }
@@ -120,19 +122,22 @@ class AuthSecurityTests {
 
     @Test
     void logout_thenAccessTokenRejected() throws Exception {
+
+        String email = "user_" + System.currentTimeMillis() + "@test.com";
+
         // register + login
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"nome":"User2","email":"user2@test.com","senha":"senha12345"}
-                        """))
+                        {"nome":"User2","email":"%s","senha":"Senha123!"}
+                        """.formatted(email)))
                 .andExpect(status().isCreated());
 
         MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"email":"user2@test.com","password":"senha12345","captchaToken":"ok"}
-                        """))
+                        {"email":"%s","password":"Senha123!","captchaToken":"ok"}
+                        """.formatted(email)))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -151,7 +156,7 @@ class AuthSecurityTests {
                 .header("Authorization", "Bearer " + access)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"nome":"X","email":"x@test.com","senha":"senha12345"}
+                        {"nome":"X","email":"x@test.com","senha":"Senha123!"}
                         """))
                 .andExpect(status().isUnauthorized());
     }
