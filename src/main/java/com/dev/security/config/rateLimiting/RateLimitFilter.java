@@ -50,7 +50,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 || path.equals("/api/v1/auth/refresh")) {
             String ip = getClientIP(request);
 
-            // bucket compartilhado no Redis, chave = IP
             Bucket bucket = proxyManager.builder().build(ip, configSupplier);
 
             if (!bucket.tryConsume(1)) {
