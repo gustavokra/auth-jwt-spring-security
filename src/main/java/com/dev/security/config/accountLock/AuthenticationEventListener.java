@@ -37,7 +37,6 @@ public class AuthenticationEventListener {
         audit.loginFailure(email, currentIp(), "bad_credentials");
     }
 
-    // opcional: conta bloqueada
     @EventListener
     public void onLocked(org.springframework.security.authentication.event.AuthenticationFailureLockedEvent event) {
         String email = String.valueOf(event.getAuthentication().getPrincipal());
