@@ -48,11 +48,10 @@ class AuthSecurityTests {
 
     @Test
     void protectedRoute_withoutToken_returns401() throws Exception {
-        mockMvc.perform(get("/api/v1/admin/register")) // ajuste para uma rota GET autenticada se tiver
+        mockMvc.perform(get("/api/v1/admin/register"))
                 .andExpect(status().isUnauthorized());
     }
 
-    // Se não tiver GET protegido, use POST admin sem token:
     @Test
     void adminRegister_withoutToken_returns401() throws Exception {
         mockMvc.perform(post("/api/v1/admin/register")
@@ -100,7 +99,6 @@ class AuthSecurityTests {
         JsonNode body = objectMapper.readTree(login.getResponse().getContentAsString());
         String access = body.get("accessToken").asText();
 
-        // admin sem role ADMIN → 403
         mockMvc.perform(post("/api/v1/admin/register")
                 .header("Authorization", "Bearer " + access)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -125,7 +123,6 @@ class AuthSecurityTests {
 
         String email = "user_" + System.currentTimeMillis() + "@test.com";
 
-        // register + login
         mockMvc.perform(post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
@@ -151,7 +148,6 @@ class AuthSecurityTests {
                 .content("{\"refreshToken\":\"" + refresh + "\"}"))
                 .andExpect(status().isNoContent());
 
-        // access na denylist → 401 em rota protegida
         mockMvc.perform(post("/api/v1/admin/register")
                 .header("Authorization", "Bearer " + access)
                 .contentType(MediaType.APPLICATION_JSON)
