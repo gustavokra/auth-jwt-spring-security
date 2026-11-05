@@ -71,35 +71,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refresh(@Valid @RequestBody RefreshRequest request) {
 
-        RefreshTokenService.RefreshSession session = refreshTokenService
-                .find(request.refreshToken())
-                .orElseThrow(() -> {
-                    audit.refreshFailure("invalid_or_expired_refresh");
-                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh inválido ou expirado");
-                });
-
-        User user = repo.findUserByEmail(session.email())
-                .orElseThrow(() -> {
-                    audit.refreshFailure("user_not_found");
-                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não encontrado");
-                });
-
-        if (!user.isAccountNonLocked()) {
-            refreshTokenService.revokeByKey(session.redisKey());
-
-            audit.refreshFailure("account_locked");
-
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Conta bloqueada");
-        }
-
-        refreshTokenService.revokeByKey(session.redisKey());
-
-        String newAccess = tokenConfig.generateAccessToken(user);
-        String newRefresh = refreshTokenService.create(user.getId(), user.getEmail());
-
-        audit.refreshSuccess(session.email());
-
-        return ResponseEntity.ok(new LoginResponse(newAccess, newRefresh));
+        return ResponseEntity.ok(service.refresh(request));
     }
 
     @PostMapping("/logout")
