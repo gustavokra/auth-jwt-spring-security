@@ -1,6 +1,7 @@
 package com.dev.security.service;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,8 +16,11 @@ import com.dev.security.config.token.RefreshTokenService;
 import com.dev.security.config.token.TokenConfig;
 import com.dev.security.dto.request.LoginRequest;
 import com.dev.security.dto.request.RefreshRequest;
+import com.dev.security.dto.request.RegisterUserRequest;
 import com.dev.security.dto.response.LoginResponse;
+import com.dev.security.dto.response.MessageResponse;
 import com.dev.security.entity.User;
+import com.dev.security.enums.UserRole;
 import com.dev.security.repository.UserRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,8 +61,7 @@ public class AuthService {
 
         User user = authenticate(request);
 
-        return new LoginResponse(tokenConfig.generateAccessToken(user),
-                refreshTokenService.create(user.getId(), user.getEmail()));
+        return new LoginResponse(generateAccessToken(user), generateRefreshToken(user));
     }
 
     private void validateCaptcha(LoginRequest request,
@@ -89,7 +92,7 @@ public class AuthService {
 
         audit.refreshSuccess(session.email());
 
-        return new LoginResponse(tokenConfig.generateAccessToken(user), refreshTokenService.create(user.getId(), user.getEmail()));
+        return new LoginResponse(generateAccessToken(user), generateRefreshToken(user));
     }
 
     private RefreshTokenService.RefreshSession findRequestRefreshToken(RefreshRequest request) {
@@ -119,12 +122,66 @@ public class AuthService {
         }
     }
 
+    private String generateAccessToken(User user) {
+        return tokenConfig.generateAccessToken(user);
+    }
+
+    private String generateRefreshToken(User user) {
+        return refreshTokenService.create(user.getId(), user.getEmail());
+    }
+
     private String clientIp(HttpServletRequest request) {
         String xf = request.getHeader("X-Forwarded-For");
         if (xf == null || xf.isBlank()) {
             return request.getRemoteAddr();
         }
         return xf.split(",")[0].trim();
+    }
+
+    public ResponseEntity<Void> logout(String authorization, RefreshRequest body) {
+        String accessToken = null;
+
+        revokeAccessToken(authorization, accessToken);
+
+        revokeRefreshToken(body);
+
+        String email = tokenConfig.extractEmail(accessToken).orElse("-");
+        audit.logout(email);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    private void revokeAccessToken(String authorization, String accessToken) {
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            accessToken = authorization.substring(7).trim();
+            tokenConfig.revokeAccessToken(accessToken);
+        }
+    }
+
+    private void revokeRefreshToken(RefreshRequest body) {
+        if (body != null && body.refreshToken() != null) {
+            refreshTokenService.revoke(body.refreshToken());
+        }
+    }
+
+    public ResponseEntity<MessageResponse> register(RegisterUserRequest request) {
+        final String generic = "Se os dados forem válidos, a conta foi criada. Faça login.";
+
+        validateAndCreateUser(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new MessageResponse(generic));
+    }
+
+    public void validateAndCreateUser(RegisterUserRequest request) {
+        if (repo.findUserByEmail(request.email()).isEmpty()) {
+            User newUser = new User();
+            newUser.setName(request.nome());
+            newUser.setEmail(request.email());
+            newUser.setPassword(passwordEncoder.encode(request.senha()));
+            newUser.setRole(UserRole.USER);
+            repo.save(newUser);
+        }
     }
 
 }
