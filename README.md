@@ -217,9 +217,4 @@ src/main/java/com/dev/security/
 5. **Secrets só em env** — nunca commitados.
 6. **Register genérico** evita enumeração pública de e-mails.
 
----
-
-## Licença
-
-Este repositório é um projeto de estudo/portfólio. Ajuste a licença conforme sua preferência.
 ```
