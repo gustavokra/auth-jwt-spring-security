@@ -1,5 +1,6 @@
 package com.dev.security.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,14 +46,15 @@ public class AuthController {
             @RequestHeader(value = "Authorization", required = false) String authorization,
             @RequestBody(required = false) RefreshRequest body) {
 
-        return service.logout(authorization, body);
+        service.logout(authorization, body);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/register", consumes = "application/json")
     public ResponseEntity<MessageResponse> register(
             @Valid @RequestBody RegisterUserRequest request) {
-
-        return service.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.register(request));
     }
 
 }

@@ -9,7 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.dev.security.config.accountLock.LoginAttemptService;
 import com.dev.security.config.audit.SecurityAuditLogger;
 import com.dev.security.config.captcha.CaptchaService;
 import com.dev.security.config.token.RefreshTokenService;
@@ -40,7 +39,6 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
             TokenConfig tokenConfig,
-            LoginAttemptService loginAttemptService,
             CaptchaService captchaService,
             RefreshTokenService refreshTokenService,
             SecurityAuditLogger audit) {
@@ -138,7 +136,7 @@ public class AuthService {
         return xf.split(",")[0].trim();
     }
 
-    public ResponseEntity<Void> logout(String authorization, RefreshRequest body) {
+    public void logout(String authorization, RefreshRequest body) {
         String accessToken = extractBearer(authorization);
 
         String email = tokenConfig.extractEmail(accessToken).orElse("-");
@@ -148,8 +146,6 @@ public class AuthService {
             tokenConfig.revokeAccessToken(accessToken);
         }
         revokeRefreshToken(body);
-
-        return ResponseEntity.noContent().build();
     }
 
     private String extractBearer(String authorization) {
@@ -165,13 +161,12 @@ public class AuthService {
         }
     }
 
-    public ResponseEntity<MessageResponse> register(RegisterUserRequest request) {
+    public MessageResponse register(RegisterUserRequest request) {
         final String generic = "Se os dados forem válidos, a conta foi criada. Faça login.";
 
         validateAndCreateUser(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new MessageResponse(generic));
+        return new MessageResponse(generic);
     }
 
     public void validateAndCreateUser(RegisterUserRequest request) {
