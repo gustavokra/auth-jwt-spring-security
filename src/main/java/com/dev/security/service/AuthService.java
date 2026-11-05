@@ -163,12 +163,12 @@ public class AuthService {
     public MessageResponse register(RegisterUserRequest request) {
         final String generic = "Se os dados forem válidos, a conta foi criada. Faça login.";
 
-        validateAndCreateUser(request);
+        createUserIfAbsent(request);
 
         return new MessageResponse(generic);
     }
 
-    public void validateAndCreateUser(RegisterUserRequest request) {
+    private void createUserIfAbsent(RegisterUserRequest request) {
         if (repo.findUserByEmail(request.email()).isEmpty()) {
             User newUser = new User();
             newUser.setName(request.nome());
