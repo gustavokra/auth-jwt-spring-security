@@ -139,23 +139,24 @@ public class AuthService {
     }
 
     public ResponseEntity<Void> logout(String authorization, RefreshRequest body) {
-        String accessToken = null;
-
-        revokeAccessToken(authorization, accessToken);
-
-        revokeRefreshToken(body);
+        String accessToken = extractBearer(authorization);
 
         String email = tokenConfig.extractEmail(accessToken).orElse("-");
         audit.logout(email);
 
+        if (accessToken != null) {
+            tokenConfig.revokeAccessToken(accessToken);
+        }
+        revokeRefreshToken(body);
+
         return ResponseEntity.noContent().build();
     }
 
-    private void revokeAccessToken(String authorization, String accessToken) {
+    private String extractBearer(String authorization) {
         if (authorization != null && authorization.startsWith("Bearer ")) {
-            accessToken = authorization.substring(7).trim();
-            tokenConfig.revokeAccessToken(accessToken);
+            return authorization.substring(7).trim();
         }
+        return null;
     }
 
     private void revokeRefreshToken(RefreshRequest body) {
