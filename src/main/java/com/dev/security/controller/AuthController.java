@@ -26,6 +26,7 @@ import com.dev.security.dto.response.MessageResponse;
 import com.dev.security.entity.User;
 import com.dev.security.enums.UserRole;
 import com.dev.security.repository.UserRepository;
+import com.dev.security.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -36,11 +37,11 @@ public class AuthController {
 
     private final UserRepository repo;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
     private final TokenConfig tokenConfig;
-    private final CaptchaService captchaService;
     private final RefreshTokenService refreshTokenService;
     private final SecurityAuditLogger audit;
+
+    private final AuthService service;
 
     public AuthController(UserRepository repo,
             PasswordEncoder passwordEncoder,
@@ -49,37 +50,22 @@ public class AuthController {
             LoginAttemptService loginAttemptService,
             CaptchaService captchaService,
             RefreshTokenService refreshTokenService,
-            SecurityAuditLogger audit) {
+            SecurityAuditLogger audit,
+            AuthService service) {
 
         this.repo = repo;
         this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
         this.tokenConfig = tokenConfig;
-        this.captchaService = captchaService;
         this.refreshTokenService = refreshTokenService;
         this.audit = audit;
+        this.service = service;
     }
 
     @PostMapping(value = "/login", consumes = "application/json")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
 
-        if (!captchaService.isValid(request.captchaToken())) {
-            audit.captchaInvalid(request.email(), clientIp(httpRequest));
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CAPTCHA inválido ou não resolvido");
-        }
-
-        UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(request.email(),
-                request.password());
-
-        Authentication authentication = authenticationManager.authenticate(userAndPass);
-
-        User user = (User) authentication.getPrincipal();
-
-        String accessToken = tokenConfig.generateAccessToken(user);
-        String refreshToken = refreshTokenService.create(user.getId(), user.getEmail());
-
-        return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken));
+        return ResponseEntity.ok(service.login(request, httpRequest));
     }
 
     @PostMapping("/refresh")
